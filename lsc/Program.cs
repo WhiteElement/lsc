@@ -1,10 +1,10 @@
-﻿using ParsedFile = lsc.File;
+﻿using BraunMisc;
+using lsc;
 
 var currentDir = Environment.CurrentDirectory;
 var fileNames = Directory.GetFiles(currentDir);
 
 var parsedFiles = new List<ParsedFile>();
-
 
 // "4 Files in /temp/..."
 
@@ -19,6 +19,9 @@ foreach (var file in fileNames)
     }; 
     parsedFiles.Add(formattedFile);
 }
+
+BraunAssert.Assert(parsedFiles.Count == fileNames.Length, "konnte nicht alle Files parsen");
+
 
 foreach (var parsedFile in parsedFiles)
 {

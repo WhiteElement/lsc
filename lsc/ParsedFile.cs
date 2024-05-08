@@ -1,6 +1,8 @@
-﻿namespace lsc;
+﻿using BraunMisc;
 
-public class File
+namespace lsc;
+
+public class ParsedFile
 {
     private long _size;
 
@@ -57,6 +59,7 @@ public class File
             size /= 1000;
         }
 
-        throw new Exception("Only supported for files smaller than 1 tb");
+        BraunAssert.Assert(size < 1000, "File ist über 1TB");
+        throw new Exception();
     }
 }
