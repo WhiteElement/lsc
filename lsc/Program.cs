@@ -1,13 +1,21 @@
-﻿using BraunMisc;
+﻿using System.Security.Cryptography;
+using BraunMisc;
 using lsc;
 
 var currentDir = Environment.CurrentDirectory;
-var dirNames = Directory.GetDirectories(currentDir);
+if (args.Contains("-d"))
+{
+    Console.WriteLine("Directory Mode -d");
+    var parsedDirs = AggregateDirs(currentDir);
+    PrintDirs(parsedDirs);
+}
+else
+{
+    Console.WriteLine("Normal Mode");
+}
 var fileNames = Directory.GetFiles(currentDir);
 
 var parsedFiles = new List<ParsedFile>();
-
-// "4 Files in /temp/..."
 
 foreach (var file in fileNames)
 {
@@ -23,17 +31,29 @@ foreach (var file in fileNames)
 
 BraunAssert.Assert(parsedFiles.Count == fileNames.Length, "konnte nicht alle Files parsen");
 
-var parsedDirs = new List<DirectoryInfo>();
-foreach (var dir in dirNames)
-{
-    var dirInfo = new DirectoryInfo(dir);
-    parsedDirs.Add(dirInfo);
-}
 
 Console.WriteLine($"{parsedFiles.Count} files & {parsedDirs.Count} folders in {currentDir}");
 
-foreach (var parsedDir in parsedDirs)
-    Console.WriteLine($"<DIR>  {parsedDir.Name}");
 
 foreach (var parsedFile in parsedFiles)
     Console.WriteLine(parsedFile.SizeAndMetric() + "\t" + parsedFile.Name);
+
+void PrintDirs(List<DirectoryInfo> parsedDirs)
+{
+    foreach (var parsedDir in parsedDirs)
+        Console.WriteLine($"<DIR>  {parsedDir.Name}");
+}
+
+List<DirectoryInfo> AggregateDirs(string directory)
+{
+    var dirNames = Directory.GetDirectories(directory);
+    var parsedDirs = new List<DirectoryInfo>();
+    
+    foreach (var dir in dirNames)
+    {
+        var dirInfo = new DirectoryInfo(dir);
+        parsedDirs.Add(dirInfo);
+    }
+
+    return parsedDirs;
+}
