@@ -1,27 +1,64 @@
-﻿using ParsedFile = lsc.File;
+﻿using BraunMisc;
+using lsc;
 
 var currentDir = Environment.CurrentDirectory;
-var fileNames = Directory.GetFiles(currentDir);
+List<IConsoleDisplay> resultContainer = new();
 
-var parsedFiles = new List<ParsedFile>();
-
-
-// "4 Files in /temp/..."
-
-foreach (var file in fileNames)
+if (args.Contains("-d"))
 {
-    var fileInfo = new FileInfo(file);
-
-    var formattedFile = new ParsedFile()
-    {
-        Name = fileInfo.Name,
-        Size = fileInfo.Length
-    }; 
-    parsedFiles.Add(formattedFile);
+    // -d Flag filters for Directories only
+    resultContainer.AddRange(AggregateDirs());
+}
+else
+{
+    resultContainer.AddRange(AggregateFiles());
+    resultContainer.AddRange(AggregateDirs());
 }
 
-foreach (var parsedFile in parsedFiles)
+PrintEntries(resultContainer);
+
+List<ParsedFile> AggregateFiles()
 {
-    Console.WriteLine(parsedFile.SizeAndMetric() + "\t" + parsedFile.Name);
+    var fileNames = Directory.GetFiles(currentDir);
+    var parsedFiles = new List<ParsedFile>();
+
+    foreach (var file in fileNames)
+    {
+        var formattedFile = new ParsedFile(file);
+        parsedFiles.Add(formattedFile);
+    }
+    BraunAssert.Assert(parsedFiles.Count == fileNames.Length, "konnte nicht alle Files parsen");
+
+    return parsedFiles;
+}
+
+List<ParsedDir> AggregateDirs()
+{
+    var dirNames = Directory.GetDirectories(currentDir);
+    var parsedDirs = new List<ParsedDir>();
     
+    foreach (var dir in dirNames)
+    {
+        var dirInfo = new ParsedDir
+        {
+            Name = dir
+        };
+        parsedDirs.Add(dirInfo);
+    }
+
+    return parsedDirs;
+}
+
+void PrintEntries(List<IConsoleDisplay> entries)
+{
+    string headerFilePart = args.Contains("-d")
+        ? ""
+        : $"{entries.Where(x => x is ParsedFile).ToArray().Length} files "; 
+    
+    Console.WriteLine($"{headerFilePart}" +
+                      $"{entries.Where(x => x is ParsedDir).ToArray().Length} directories" +
+                      $" in {currentDir}");
+    
+    foreach (var result in entries)
+        Console.WriteLine(result.Info + "\t" + result.Name);
 }
