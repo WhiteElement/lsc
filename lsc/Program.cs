@@ -3,6 +3,7 @@ using lsc;
 
 var currentDir = Environment.CurrentDirectory;
 List<IConsoleDisplay> resultContainer = new();
+
 if (args.Contains("-d"))
 {
     // -d Flag filters for Directories only
@@ -48,12 +49,16 @@ List<ParsedDir> AggregateDirs()
     return parsedDirs;
 }
 
-void PrintEntries(List<IConsoleDisplay> resultContainer)
+void PrintEntries(List<IConsoleDisplay> entries)
 {
-    Console.WriteLine($"{resultContainer.Where(x => x is ParsedFile).ToArray().Length} files" +
-                      $" & {resultContainer.Where(x => x is ParsedDir).ToArray().Length} directories" +
+    string headerFilePart = args.Contains("-d")
+        ? ""
+        : $"{entries.Where(x => x is ParsedFile).ToArray().Length} files "; 
+    
+    Console.WriteLine($"{headerFilePart}" +
+                      $"{entries.Where(x => x is ParsedDir).ToArray().Length} directories" +
                       $" in {currentDir}");
     
-    foreach (var result in resultContainer)
+    foreach (var result in entries)
         Console.WriteLine(result.Info + "\t" + result.Name);
 }
