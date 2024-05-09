@@ -2,10 +2,16 @@
 
 namespace lsc;
 
-public class ParsedFile
+public class ParsedFile : IConsoleDisplay
 {
     private long _size;
 
+    public ParsedFile(string fileName)
+    {
+        var fileInfo = new FileInfo(fileName);
+        Name = fileInfo.Name;
+        Size = fileInfo.Length;
+    }
     public long Size
     {
         get
@@ -17,6 +23,7 @@ public class ParsedFile
         set { _size = value; }
     }
 
+    // will probably needed in Future
     public long FullSize
     {
         get => _size;
@@ -29,22 +36,25 @@ public class ParsedFile
             return pref;
         }
    }
-    public string? Name { get; set; }
+    public string Name { get; set; }
 
-    public string SizeAndMetric()
+    public string Info
     {
-        switch (Size.ToString().Length)
+        get
         {
-            case 1:
-                return Size +   "   "    + MetrixPrefix;
-            case 2:
-                return Size +   "  "     + MetrixPrefix;
-            case 3:
-                return Size +   " "      + MetrixPrefix;
-            case 4:
-                return Size +   ""       + MetrixPrefix;
-            default:
-                return Size +   ""       + MetrixPrefix;
+            switch (Size.ToString().Length)
+            {
+                case 1:
+                    return Size +   "   "    + MetrixPrefix;
+                case 2:
+                    return Size +   "  "     + MetrixPrefix;
+                case 3:
+                    return Size +   " "      + MetrixPrefix;
+                case 4:
+                    return Size +   ""       + MetrixPrefix;
+                default:
+                    throw new Exception("Size should never be 0 or >5");
+            }
         }
     }
 

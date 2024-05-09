@@ -1,59 +1,59 @@
-﻿using System.Security.Cryptography;
-using BraunMisc;
+﻿using BraunMisc;
 using lsc;
 
 var currentDir = Environment.CurrentDirectory;
+List<IConsoleDisplay> resultContainer = new();
 if (args.Contains("-d"))
 {
-    Console.WriteLine("Directory Mode -d");
-    var parsedDirs = AggregateDirs(currentDir);
-    PrintDirs(parsedDirs);
+    // -d Flag filters for Directories only
+    resultContainer.AddRange(AggregateDirs());
 }
 else
 {
-    Console.WriteLine("Normal Mode");
+    resultContainer.AddRange(AggregateFiles());
+    resultContainer.AddRange(AggregateDirs());
 }
-var fileNames = Directory.GetFiles(currentDir);
 
-var parsedFiles = new List<ParsedFile>();
+PrintEntries(resultContainer);
 
-foreach (var file in fileNames)
+List<ParsedFile> AggregateFiles()
 {
-    var fileInfo = new FileInfo(file);
+    var fileNames = Directory.GetFiles(currentDir);
+    var parsedFiles = new List<ParsedFile>();
 
-    var formattedFile = new ParsedFile()
+    foreach (var file in fileNames)
     {
-        Name = fileInfo.Name,
-        Size = fileInfo.Length
-    }; 
-    parsedFiles.Add(formattedFile);
+        var formattedFile = new ParsedFile(file);
+        parsedFiles.Add(formattedFile);
+    }
+    BraunAssert.Assert(parsedFiles.Count == fileNames.Length, "konnte nicht alle Files parsen");
+
+    return parsedFiles;
 }
 
-BraunAssert.Assert(parsedFiles.Count == fileNames.Length, "konnte nicht alle Files parsen");
-
-
-Console.WriteLine($"{parsedFiles.Count} files & {parsedDirs.Count} folders in {currentDir}");
-
-
-foreach (var parsedFile in parsedFiles)
-    Console.WriteLine(parsedFile.SizeAndMetric() + "\t" + parsedFile.Name);
-
-void PrintDirs(List<DirectoryInfo> parsedDirs)
+List<ParsedDir> AggregateDirs()
 {
-    foreach (var parsedDir in parsedDirs)
-        Console.WriteLine($"<DIR>  {parsedDir.Name}");
-}
-
-List<DirectoryInfo> AggregateDirs(string directory)
-{
-    var dirNames = Directory.GetDirectories(directory);
-    var parsedDirs = new List<DirectoryInfo>();
+    var dirNames = Directory.GetDirectories(currentDir);
+    var parsedDirs = new List<ParsedDir>();
     
     foreach (var dir in dirNames)
     {
-        var dirInfo = new DirectoryInfo(dir);
+        var dirInfo = new ParsedDir
+        {
+            Name = dir
+        };
         parsedDirs.Add(dirInfo);
     }
 
     return parsedDirs;
+}
+
+void PrintEntries(List<IConsoleDisplay> resultContainer)
+{
+    Console.WriteLine($"{resultContainer.Where(x => x is ParsedFile).ToArray().Length} files" +
+                      $" & {resultContainer.Where(x => x is ParsedDir).ToArray().Length} directories" +
+                      $" in {currentDir}");
+    
+    foreach (var result in resultContainer)
+        Console.WriteLine(result.Info + "\t" + result.Name);
 }
